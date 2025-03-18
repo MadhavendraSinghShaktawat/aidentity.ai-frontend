@@ -4,6 +4,9 @@ import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import { useState, useEffect } from "react";
 import "./globals.css";
+import { Inter } from 'next/font/google';
+import { cn } from '@/lib/utils';
+import { AuthProvider } from '@/providers/auth-provider';
 
 export default function RootLayout({
   children,
@@ -25,9 +28,11 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" />
       </head>
       <body className={`min-h-screen bg-background font-sans antialiased ${mounted ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500`}>
-        <div className="relative flex min-h-screen flex-col">
-          <div className="flex-1">{children}</div>
-        </div>
+        <AuthProvider>
+          <div className="relative flex min-h-screen flex-col">
+            <div className="flex-1">{children}</div>
+          </div>
+        </AuthProvider>
       </body>
     </html>
   );

@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { MorphingText } from './magicui/morphing-text';
 import { RetroGrid } from './magicui/retro-grid';
 import { cn } from '@/lib/utils';
+import { LoginButton } from './login-button';
+import { useAuthContext } from '@/providers/auth-provider';
 
 interface HeroSectionProps {
     className?: string;
@@ -97,6 +99,7 @@ const ProductDemo = memo(() => (
 // Main hero section with performance optimizations
 export const HeroSection: React.FC<HeroSectionProps> = ({ className }) => {
     const [isLoaded, setIsLoaded] = useState(false);
+    const { isAuthenticated, user, login } = useAuthContext();
 
     // Simple fade-in only - no complex animations
     useEffect(() => {
@@ -153,12 +156,19 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ className }) => {
                         <Link href="#" className="text-sm text-foreground/70 hover:text-foreground transition-colors duration-200">Blog</Link>
                     </div>
 
-                    {/* Right Nav */}
+                    {/* Right Nav - Simplified: just one login/logout button */}
                     <div className="flex items-center space-x-4">
-                        <Link href="#" className="hidden md:block text-sm text-foreground/70 hover:text-foreground transition-colors duration-200 px-3 py-2">Log in</Link>
-                        <Link href="#" className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-lg">
-                            Get Started
-                        </Link>
+                        {isAuthenticated ? (
+                            <div className="flex items-center space-x-3">
+                                <div className="hidden md:block text-sm">
+                                    <span className="text-foreground/70">Hello, </span>
+                                    <span className="text-foreground font-medium">{user?.name?.split(' ')[0]}</span>
+                                </div>
+                                <LoginButton />
+                            </div>
+                        ) : (
+                            <LoginButton />
+                        )}
                     </div>
                 </nav>
             </header>
@@ -186,11 +196,19 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ className }) => {
                             Your One-Stop Solution for Content Creation, Audio Generation, Image Crafting & AI-Driven Development.
                         </p>
 
-                        {/* UPDATED CTA SECTION */}
+                        {/* UPDATED CTA SECTION - Direct login with the waitlist button */}
                         <div className="flex items-center gap-4 mb-10">
-                            <button className="px-8 py-3 bg-primary text-primary-foreground rounded-lg font-medium">
-                                Join Waitlist
-                            </button>
+                            {isAuthenticated ? (
+                                <Link href="/dashboard" className="px-8 py-3 bg-primary text-primary-foreground rounded-lg font-medium inline-block">
+                                    Go to Dashboard
+                                </Link>
+                            ) : (
+                                <button
+                                    onClick={login} // Direct login on click
+                                    className="px-8 py-3 bg-primary text-primary-foreground rounded-lg font-medium">
+                                    Join Waitlist
+                                </button>
+                            )}
                             <span className="text-sm text-foreground/70">for early free access</span>
                         </div>
 
