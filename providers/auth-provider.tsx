@@ -1,14 +1,15 @@
 "use client";
 
 import React, { createContext, useContext, ReactNode } from 'react';
-import { useAuth, User } from '@/lib/auth';
+import { useAuth, User, LoginSource } from '@/lib/auth';
 
 interface AuthContextType {
     user: User | null;
     loading: boolean;
-    login: () => Promise<void>;
+    login: (source?: LoginSource) => void;
     logout: () => void;
     isAuthenticated: boolean;
+    joinWaitlistIfAuthenticated: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

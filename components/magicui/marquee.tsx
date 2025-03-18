@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { ComponentPropsWithoutRef } from "react";
+import { ComponentPropsWithoutRef, useEffect, useState } from "react";
 
 interface MarqueeProps extends ComponentPropsWithoutRef<"div"> {
   /**
@@ -30,6 +30,21 @@ interface MarqueeProps extends ComponentPropsWithoutRef<"div"> {
    * @default 4
    */
   repeat?: number;
+  /**
+   * Animation duration in seconds
+   * @default 40
+   */
+  duration?: number;
+  /**
+   * Whether to fade in the marquee on mount
+   * @default true
+   */
+  fadeIn?: boolean;
+  /**
+   * Whether to add a gradient overlay at the edges
+   * @default false 
+   */
+  gradientEdges?: boolean;
 }
 
 export function Marquee({
@@ -39,35 +54,111 @@ export function Marquee({
   children,
   vertical = false,
   repeat = 4,
+  duration = 50,
+  fadeIn = true,
+  gradientEdges = false,
   ...props
 }: MarqueeProps) {
+  const [isVisible, setIsVisible] = useState(!fadeIn);
+
+  useEffect(() => {
+    if (fadeIn) {
+      const timer = setTimeout(() => {
+        setIsVisible(true);
+      }, 300);
+
+      return () => clearTimeout(timer);
+    }
+  }, [fadeIn]);
+
   return (
     <div
       {...props}
       className={cn(
-        "group flex overflow-hidden p-2 [--duration:40s] [--gap:1rem] [gap:var(--gap)]",
-        {
-          "flex-row": !vertical,
-          "flex-col": vertical,
-        },
-        className,
+        "relative overflow-hidden",
+        fadeIn && "transition-opacity duration-1000",
+        fadeIn && (isVisible ? "opacity-100" : "opacity-0"),
+        className
       )}
     >
-      {Array(repeat)
-        .fill(0)
-        .map((_, i) => (
-          <div
-            key={i}
-            className={cn("flex shrink-0 justify-around [gap:var(--gap)]", {
-              "animate-marquee flex-row": !vertical,
-              "animate-marquee-vertical flex-col": vertical,
-              "group-hover:[animation-play-state:paused]": pauseOnHover,
-              "[animation-direction:reverse]": reverse,
-            })}
-          >
-            {children}
-          </div>
-        ))}
+      {/* Optional gradient edges for a cleaner look */}
+      {gradientEdges && !vertical && (
+        <>
+          <div className="absolute left-0 top-0 z-10 h-full w-24 bg-gradient-to-r from-background to-transparent pointer-events-none" />
+          <div className="absolute right-0 top-0 z-10 h-full w-24 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+        </>
+      )}
+
+      {gradientEdges && vertical && (
+        <>
+          <div className="absolute left-0 top-0 z-10 h-24 w-full bg-gradient-to-b from-background to-transparent pointer-events-none" />
+          <div className="absolute bottom-0 left-0 z-10 h-24 w-full bg-gradient-to-t from-background to-transparent pointer-events-none" />
+        </>
+      )}
+
+      <div className="flex whitespace-nowrap">
+        {/* First copy for seamless infinite scroll */}
+        <div
+          className={cn(
+            "flex min-w-full shrink-0 gap-4 py-4",
+            vertical ? "flex-col" : "flex-row",
+          )}
+          style={{
+            animationDuration: `${duration}s`,
+            animationTimingFunction: "linear",
+            animationIterationCount: "infinite",
+            animationName: vertical ? "marquee-vertical" : "marquee",
+            animationDirection: reverse ? "reverse" : "normal",
+            animationPlayState: "running",
+            ...(pauseOnHover && { "--hover-play-state": "paused" } as React.CSSProperties),
+          }}
+          onMouseEnter={pauseOnHover ? (e) => {
+            e.currentTarget.style.animationPlayState = "paused";
+          } : undefined}
+          onMouseLeave={pauseOnHover ? (e) => {
+            e.currentTarget.style.animationPlayState = "running";
+          } : undefined}
+        >
+          {Array(repeat)
+            .fill(0)
+            .map((_, i) => (
+              <div key={i} className="flex shrink-0 items-center justify-center">
+                {children}
+              </div>
+            ))}
+        </div>
+
+        {/* Duplicate for seamless looping */}
+        <div
+          className={cn(
+            "flex min-w-full shrink-0 gap-4 py-4",
+            vertical ? "flex-col" : "flex-row",
+          )}
+          style={{
+            animationDuration: `${duration}s`,
+            animationTimingFunction: "linear",
+            animationIterationCount: "infinite",
+            animationName: vertical ? "marquee-vertical" : "marquee",
+            animationDirection: reverse ? "reverse" : "normal",
+            animationPlayState: "running",
+            ...(pauseOnHover && { "--hover-play-state": "paused" } as React.CSSProperties),
+          }}
+          onMouseEnter={pauseOnHover ? (e) => {
+            e.currentTarget.style.animationPlayState = "paused";
+          } : undefined}
+          onMouseLeave={pauseOnHover ? (e) => {
+            e.currentTarget.style.animationPlayState = "running";
+          } : undefined}
+        >
+          {Array(repeat)
+            .fill(0)
+            .map((_, i) => (
+              <div key={i} className="flex shrink-0 items-center justify-center">
+                {children}
+              </div>
+            ))}
+        </div>
+      </div>
     </div>
   );
 }

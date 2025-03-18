@@ -1,0 +1,76 @@
+# frontend/.cursorrules for AIdentity.ai Frontend
+
+# Project Overview
+
+# Frontend for AIdentity.ai, providing a user interface for content creation,
+
+# scheduling, and online video editing.
+
+# Tech Stack
+
+# Front End: Next.js (React), Tailwind CSS, FullCalendar
+
+# Media Processing: WebAssembly (FFmpeg.wasm)
+
+# Monitoring: Sentry
+
+# Third-Party APIs: Oauth Authentication
+
+# Key Principles
+
+- Write concise, technical JavaScript/TypeScript responses focused on clarity.
+- Use functional components and hooks; avoid class-based components.
+- Prefer iteration and modularization to reduce code duplication.
+- Use descriptive variable names with auxiliary verbs (e.g., isLoading, hasError).
+- Use lowercase with hyphens for directories and files (e.g., components/content-card.js).
+- Favor named exports for components and utility functions.
+- Apply the Receive an Object, Return an Object (RORO) pattern where suitable.
+
+# Next.js/React Guidelines
+
+- Build UI with functional components leveraging React hooks for state and effects.
+- Use Next.js API routes to proxy backend requests during development.
+- Apply Tailwind CSS utility classes for styling; minimize custom CSS usage.
+- Lazy-load heavy components like FullCalendar and WASM modules to optimize load times.
+
+# Media Processing Guidelines
+
+- Integrate WebAssembly with FFmpeg.wasm for browser-based video editing.
+- Fetch media files from S3 through backend API endpoints.
+- Offload complex processing to the backend when WASM performance is insufficient.
+
+# Error Handling
+
+- Manage errors at the component level with state variables for user feedback.
+- Track runtime errors with Sentry for real-time monitoring and debugging.
+
+# Performance Optimization
+
+- Leverage Next.js SSR for fast initial page loads with dynamic data.
+- Use lazy loading for large components and media processing libraries.
+- Optimize API calls with caching strategies or libraries like SWR.
+
+# Key Conventions
+
+- Rely on hooks for managing state and side effects; avoid complex state management unless necessary.
+- Organize files into pages/, components/, lib/, and styles/ directories.
+- Prioritize fast page loads and smooth user interactions with minimal client-side delays.
+
+# Additional Guidelines
+
+- Early Returns: Use to improve readability in conditional logic.
+- Styling: Exclusively use Tailwind CSS classes; avoid raw CSS or conditional class logic where possible.
+- Naming: Choose descriptive names; prefix event handlers with “handle” (e.g., handleClick).
+- Accessibility: Incorporate features like tabindex, aria-label, and keyboard event support.
+- Const Preference: Favor constant declarations over function expressions where applicable; include type definitions.
+
+## Folder Structure Guidelines
+
+src/
+│── components/ # Reusable UI components
+│── hooks/ # Custom hooks
+│── pages/ # Route-based components
+│── services/ # API calls and business logic
+│── context/ # Global state management
+│── utils/ # Helper functions
+│── styles/ # Tailwind utility overrides

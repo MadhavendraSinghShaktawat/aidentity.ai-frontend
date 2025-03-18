@@ -4,9 +4,11 @@ import React, { useState, useEffect, memo } from 'react';
 import Link from 'next/link';
 import { MorphingText } from './magicui/morphing-text';
 import { RetroGrid } from './magicui/retro-grid';
+import { Marquee } from './magicui/marquee';
 import { cn } from '@/lib/utils';
 import { LoginButton } from './login-button';
 import { useAuthContext } from '@/providers/auth-provider';
+import { LoginSource } from '@/lib/auth';
 
 interface HeroSectionProps {
     className?: string;
@@ -99,7 +101,8 @@ const ProductDemo = memo(() => (
 // Main hero section with performance optimizations
 export const HeroSection: React.FC<HeroSectionProps> = ({ className }) => {
     const [isLoaded, setIsLoaded] = useState(false);
-    const { isAuthenticated, user, login } = useAuthContext();
+    const { isAuthenticated, user, login, joinWaitlistIfAuthenticated } = useAuthContext();
+    const [isJoining, setIsJoining] = useState(false);
 
     // Simple fade-in only - no complex animations
     useEffect(() => {
@@ -121,147 +124,269 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ className }) => {
         { rating: "4.8", service: "G2", stars: 5 }
     ];
 
+    const handleJoinWaitlist = async () => {
+        setIsJoining(true);
+        try {
+            // This will either join the waitlist directly (if authenticated)
+            // or redirect to login with waitlist source
+            await joinWaitlistIfAuthenticated();
+        } finally {
+            setIsJoining(false);
+        }
+    };
+
     return (
-        <div className={cn("relative w-full overflow-hidden", className)}>
-            {/* Static background with no animations */}
-            <div className="absolute inset-0 z-0 opacity-10">
-                <RetroGrid
-                    className="opacity-30"
-                    speed={0} // No animation speed
-                    spacing={120} // Much larger spacing for fewer lines
-                    lineWidth={0.8}
-                    lineColor="hsl(var(--primary) / 0.6)"
-                    blur={0}
-                />
+        <>
+            <div className={cn("relative w-full overflow-hidden", className)}>
+                {/* Static background with no animations */}
+                <div className="absolute inset-0 z-0 opacity-10">
+                    <RetroGrid
+                        className="opacity-30"
+                        speed={0} // No animation speed
+                        spacing={120} // Much larger spacing for fewer lines
+                        lineWidth={0.8}
+                        lineColor="hsl(var(--primary) / 0.6)"
+                        blur={0}
+                    />
+                </div>
+
+                {/* Simple background with no gradients or complex effects */}
+                <div className="absolute inset-0 bg-background bg-opacity-80"></div>
+
+                {/* Navbar */}
+                <header className="relative z-10 py-5 px-6 md:px-8 lg:px-12">
+                    <nav className="flex items-center justify-between max-w-7xl mx-auto">
+                        {/* Logo */}
+                        <Link href="/" className="flex items-center">
+                            <span className="text-2xl font-bold">
+                                <span className="gradient-text highlight-dot">rikuu</span><span className="text-foreground">.ai</span>
+                            </span>
+                        </Link>
+
+                        {/* Center Nav */}
+                        <div className="hidden md:flex items-center space-x-8">
+                            <Link href="#" className="text-sm text-foreground/70 hover:text-foreground transition-colors duration-200">Home</Link>
+                            <Link href="#" className="text-sm text-foreground/70 hover:text-foreground transition-colors duration-200">Features</Link>
+                            <Link href="#" className="text-sm text-foreground/70 hover:text-foreground transition-colors duration-200">Pricing</Link>
+                            <Link href="#" className="text-sm text-foreground/70 hover:text-foreground transition-colors duration-200">Blog</Link>
+                        </div>
+
+                        {/* Right Nav - Simplified: just one login/logout button */}
+                        <div className="flex items-center space-x-4">
+                            {isAuthenticated ? (
+                                <div className="flex items-center space-x-3">
+                                    <div className="hidden md:flex items-center space-x-2">
+                                        {user?.picture && (
+                                            <img
+                                                src={user.picture}
+                                                alt={user.name}
+                                                className="w-8 h-8 rounded-full border border-border"
+                                            />
+                                        )}
+                                        <span className="text-foreground font-medium">{user?.name?.split(' ')[0]}</span>
+                                    </div>
+                                    <LoginButton />
+                                </div>
+                            ) : (
+                                <LoginButton />
+                            )}
+                        </div>
+                    </nav>
+                </header>
+
+                {/* Hero Section with reduced complexity */}
+                <section className="relative z-10 pt-10 pb-24 px-6 md:px-8 lg:px-12 max-w-7xl mx-auto">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                        {/* Left Column - Text Content */}
+                        <div className={cn(
+                            "max-w-2xl",
+                            isLoaded ? "opacity-100" : "opacity-0",
+                            "transition-opacity duration-500" // Slower, simpler transition
+                        )}>
+                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6 flex flex-wrap items-center gap-x-2">
+                                <span className="text-foreground">AI </span>
+                                <MorphingText
+                                    texts={["brainstorm", "shoot", "edit", "post"]}
+                                    className="gradient-text"
+                                    interval={3000} // Slower interval
+                                />
+                                <span className="text-foreground"> content for you</span>
+                            </h1>
+
+                            <p className="text-lg text-foreground/70 mb-8 max-w-lg">
+                                Your One-Stop Solution for Content Creation, Audio Generation, Image Crafting & AI-Driven Development.
+                            </p>
+
+                            {/* UPDATED CTA SECTION - Now handles already authenticated users correctly */}
+                            <div className="flex items-center gap-4 mb-10">
+                                {isAuthenticated ? (
+                                    <Link href="/dashboard" className="px-8 py-3 bg-primary text-primary-foreground rounded-lg font-medium inline-block">
+                                        Go to Dashboard
+                                    </Link>
+                                ) : (
+                                    <button
+                                        onClick={handleJoinWaitlist}
+                                        disabled={isJoining}
+                                        className="px-8 py-3 bg-primary text-primary-foreground rounded-lg font-medium inline-flex items-center"
+                                    >
+                                        {isJoining ? (
+                                            <>
+                                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                                Processing...
+                                            </>
+                                        ) : (
+                                            'Join Waitlist'
+                                        )}
+                                    </button>
+                                )}
+                                <span className="text-sm text-foreground/70">for early free access</span>
+                            </div>
+
+                            {/* Simplified Trust Indicators */}
+                            <div className="mt-12">
+                                <p className="text-sm text-foreground/50 mb-4 uppercase tracking-wider font-medium">Trustpilot rates our AI Video Generator an impressive ★</p>
+                                <div className="flex flex-wrap gap-4">
+                                    {ratings.map((item, i) => (
+                                        <RatingCard
+                                            key={i}
+                                            rating={item.rating}
+                                            service={item.service}
+                                            stars={item.stars}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Right Column - Memoized Product Demo */}
+                        <div className={cn(
+                            isLoaded ? "opacity-100" : "opacity-0",
+                            "transition-opacity duration-500" // Slower, simpler transition
+                        )}>
+                            <ProductDemo />
+                        </div>
+                    </div>
+                </section>
+
+                {/* Features Banner - Static with no animations */}
+                {/* <section className="relative z-10 bg-card/30 border-y border-border/40 py-8">
+                    <div className="max-w-7xl mx-auto px-6 md:px-8 lg:px-12">
+                        <div className={cn(
+                            "flex flex-col md:flex-row justify-between items-center gap-6 text-center md:text-left",
+                            isLoaded ? "opacity-100" : "opacity-0",
+                            "transition-opacity duration-500" // Slower, simpler transition
+                        )}>
+                            <div>
+                                <h3 className="text-xl font-bold mb-2">Completely <span className="gradient-text">AI-Powered</span></h3>
+                                <p className="text-sm text-foreground/70">Video Generator</p>
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold mb-2">Generative <span className="gradient-text">AI Conference</span></h3>
+                                <p className="text-sm text-foreground/70">Latest Technologies</p>
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold mb-2"><span className="gradient-text">AI Voice</span> Generator</h3>
+                                <p className="text-sm text-foreground/70">Natural Sounding</p>
+                            </div>
+                        </div>
+                    </div>
+                </section> */}
             </div>
 
-            {/* Simple background with no gradients or complex effects */}
-            <div className="absolute inset-0 bg-background bg-opacity-80"></div>
+            {/* Enhanced Marquee section with smooth animations */}
+            <section className="relative py-12 overflow-hidden border-t border-b border-primary/10 bg-gradient-to-r from-background via-background/95 to-background">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,hsl(var(--primary)/0.04),transparent_40%)]"></div>
 
-            {/* Navbar */}
-            <header className="relative z-10 py-5 px-6 md:px-8 lg:px-12">
-                <nav className="flex items-center justify-between max-w-7xl mx-auto">
-                    {/* Logo */}
-                    <Link href="/" className="flex items-center">
-                        <span className="text-2xl font-bold">
-                            <span className="gradient-text highlight-dot">rikuu</span><span className="text-foreground">.ai</span>
-                        </span>
-                    </Link>
-
-                    {/* Center Nav */}
-                    <div className="hidden md:flex items-center space-x-8">
-                        <Link href="#" className="text-sm text-foreground/70 hover:text-foreground transition-colors duration-200">Home</Link>
-                        <Link href="#" className="text-sm text-foreground/70 hover:text-foreground transition-colors duration-200">Features</Link>
-                        <Link href="#" className="text-sm text-foreground/70 hover:text-foreground transition-colors duration-200">Pricing</Link>
-                        <Link href="#" className="text-sm text-foreground/70 hover:text-foreground transition-colors duration-200">Blog</Link>
+                <div className="container relative z-10">
+                    <div className="text-center mb-8">
+                        <h3 className="text-xl font-medium text-foreground/80 mb-1">Why <span className="text-primary font-semibold">businesses love</span> our platform</h3>
+                        <p className="text-sm text-foreground/60">Powerful AI tools that transform your content strategy</p>
                     </div>
 
-                    {/* Right Nav - Simplified: just one login/logout button */}
-                    <div className="flex items-center space-x-4">
-                        {isAuthenticated ? (
-                            <div className="flex items-center space-x-3">
-                                <div className="hidden md:block text-sm">
-                                    <span className="text-foreground/70">Hello, </span>
-                                    <span className="text-foreground font-medium">{user?.name?.split(' ')[0]}</span>
-                                </div>
-                                <LoginButton />
-                            </div>
-                        ) : (
-                            <LoginButton />
-                        )}
-                    </div>
-                </nav>
-            </header>
-
-            {/* Hero Section with reduced complexity */}
-            <section className="relative z-10 pt-10 pb-24 px-6 md:px-8 lg:px-12 max-w-7xl mx-auto">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                    {/* Left Column - Text Content */}
-                    <div className={cn(
-                        "max-w-2xl",
-                        isLoaded ? "opacity-100" : "opacity-0",
-                        "transition-opacity duration-500" // Slower, simpler transition
-                    )}>
-                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6 flex flex-wrap items-center gap-x-2">
-                            <span className="text-foreground">AI </span>
-                            <MorphingText
-                                texts={["brainstorm", "shoot", "edit", "post"]}
-                                className="gradient-text"
-                                interval={3000} // Slower interval
-                            />
-                            <span className="text-foreground"> content for you</span>
-                        </h1>
-
-                        <p className="text-lg text-foreground/70 mb-8 max-w-lg">
-                            Your One-Stop Solution for Content Creation, Audio Generation, Image Crafting & AI-Driven Development.
-                        </p>
-
-                        {/* UPDATED CTA SECTION - Direct login with the waitlist button */}
-                        <div className="flex items-center gap-4 mb-10">
-                            {isAuthenticated ? (
-                                <Link href="/dashboard" className="px-8 py-3 bg-primary text-primary-foreground rounded-lg font-medium inline-block">
-                                    Go to Dashboard
-                                </Link>
-                            ) : (
-                                <button
-                                    onClick={login} // Direct login on click
-                                    className="px-8 py-3 bg-primary text-primary-foreground rounded-lg font-medium">
-                                    Join Waitlist
-                                </button>
-                            )}
-                            <span className="text-sm text-foreground/70">for early free access</span>
-                        </div>
-
-                        {/* Simplified Trust Indicators */}
-                        <div className="mt-12">
-                            <p className="text-sm text-foreground/50 mb-4 uppercase tracking-wider font-medium">Trustpilot rates our AI Video Generator an impressive ★</p>
-                            <div className="flex flex-wrap gap-4">
-                                {ratings.map((item, i) => (
-                                    <RatingCard
-                                        key={i}
-                                        rating={item.rating}
-                                        service={item.service}
-                                        stars={item.stars}
-                                    />
-                                ))}
+                    <Marquee
+                        className="mb-10"
+                        pauseOnHover
+                        gradientEdges
+                        duration={60}
+                        repeat={2}
+                    >
+                        <div className="mx-8">
+                            <div className="text-xl font-medium group flex items-center gap-3 bg-card/40 border border-border/30 rounded-lg px-6 py-4 shadow-sm hover:bg-card/70 hover:border-primary/30 transition-colors duration-300">
+                                <span className="text-primary text-2xl">✨</span>
+                                <span>Personalized content creation</span>
                             </div>
                         </div>
-                    </div>
+                        <div className="mx-8">
+                            <div className="text-xl font-medium group flex items-center gap-3 bg-card/40 border border-border/30 rounded-lg px-6 py-4 shadow-sm hover:bg-card/70 hover:border-primary/30 transition-colors duration-300">
+                                <span className="text-primary text-2xl">🎯</span>
+                                <span>AI-powered targeting</span>
+                            </div>
+                        </div>
+                        <div className="mx-8">
+                            <div className="text-xl font-medium group flex items-center gap-3 bg-card/40 border border-border/30 rounded-lg px-6 py-4 shadow-sm hover:bg-card/70 hover:border-primary/30 transition-colors duration-300">
+                                <span className="text-primary text-2xl">🚀</span>
+                                <span>Grow your audience</span>
+                            </div>
+                        </div>
+                        <div className="mx-8">
+                            <div className="text-xl font-medium group flex items-center gap-3 bg-card/40 border border-border/30 rounded-lg px-6 py-4 shadow-sm hover:bg-card/70 hover:border-primary/30 transition-colors duration-300">
+                                <span className="text-primary text-2xl">📊</span>
+                                <span>Performance analytics</span>
+                            </div>
+                        </div>
+                        <div className="mx-8">
+                            <div className="text-xl font-medium group flex items-center gap-3 bg-card/40 border border-border/30 rounded-lg px-6 py-4 shadow-sm hover:bg-card/70 hover:border-primary/30 transition-colors duration-300">
+                                <span className="text-primary text-2xl">⏱️</span>
+                                <span>Save hours on content creation</span>
+                            </div>
+                        </div>
+                    </Marquee>
 
-                    {/* Right Column - Memoized Product Demo */}
-                    <div className={cn(
-                        isLoaded ? "opacity-100" : "opacity-0",
-                        "transition-opacity duration-500" // Slower, simpler transition
-                    )}>
-                        <ProductDemo />
-                    </div>
+                    <Marquee
+                        className="mt-10"
+                        pauseOnHover
+                        reverse={true}
+                        gradientEdges
+                        duration={70}
+                        repeat={2}
+                    >
+                        <div className="mx-8">
+                            <div className="text-xl font-medium group flex items-center gap-3 bg-card/40 border border-border/30 rounded-lg px-6 py-4 shadow-sm hover:bg-card/70 hover:border-primary/30 transition-colors duration-300">
+                                <span className="text-primary text-2xl">💡</span>
+                                <span>Smart content suggestions</span>
+                            </div>
+                        </div>
+                        <div className="mx-8">
+                            <div className="text-xl font-medium group flex items-center gap-3 bg-card/40 border border-border/30 rounded-lg px-6 py-4 shadow-sm hover:bg-card/70 hover:border-primary/30 transition-colors duration-300">
+                                <span className="text-primary text-2xl">🔍</span>
+                                <span>SEO optimization</span>
+                            </div>
+                        </div>
+                        <div className="mx-8">
+                            <div className="text-xl font-medium group flex items-center gap-3 bg-card/40 border border-border/30 rounded-lg px-6 py-4 shadow-sm hover:bg-card/70 hover:border-primary/30 transition-colors duration-300">
+                                <span className="text-primary text-2xl">📱</span>
+                                <span>Multi-platform publishing</span>
+                            </div>
+                        </div>
+                        <div className="mx-8">
+                            <div className="text-xl font-medium group flex items-center gap-3 bg-card/40 border border-border/30 rounded-lg px-6 py-4 shadow-sm hover:bg-card/70 hover:border-primary/30 transition-colors duration-300">
+                                <span className="text-primary text-2xl">🔄</span>
+                                <span>Automated workflows</span>
+                            </div>
+                        </div>
+                        <div className="mx-8">
+                            <div className="text-xl font-medium group flex items-center gap-3 bg-card/40 border border-border/30 rounded-lg px-6 py-4 shadow-sm hover:bg-card/70 hover:border-primary/30 transition-colors duration-300">
+                                <span className="text-primary text-2xl">🔒</span>
+                                <span>Enhanced security</span>
+                            </div>
+                        </div>
+                    </Marquee>
                 </div>
             </section>
-
-            {/* Features Banner - Static with no animations */}
-            <section className="relative z-10 bg-card/30 border-y border-border/40 py-8">
-                <div className="max-w-7xl mx-auto px-6 md:px-8 lg:px-12">
-                    <div className={cn(
-                        "flex flex-col md:flex-row justify-between items-center gap-6 text-center md:text-left",
-                        isLoaded ? "opacity-100" : "opacity-0",
-                        "transition-opacity duration-500" // Slower, simpler transition
-                    )}>
-                        <div>
-                            <h3 className="text-xl font-bold mb-2">Completely <span className="gradient-text">AI-Powered</span></h3>
-                            <p className="text-sm text-foreground/70">Video Generator</p>
-                        </div>
-                        <div>
-                            <h3 className="text-xl font-bold mb-2">Generative <span className="gradient-text">AI Conference</span></h3>
-                            <p className="text-sm text-foreground/70">Latest Technologies</p>
-                        </div>
-                        <div>
-                            <h3 className="text-xl font-bold mb-2"><span className="gradient-text">AI Voice</span> Generator</h3>
-                            <p className="text-sm text-foreground/70">Natural Sounding</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </div>
+        </>
     );
 };
 

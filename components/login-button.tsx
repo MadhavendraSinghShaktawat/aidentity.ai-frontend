@@ -3,7 +3,8 @@
 import { useAuthContext } from '@/providers/auth-provider';
 import { Button } from './ui/button';
 import { Loader2, LogIn, LogOut } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { LoginSource } from '@/lib/auth';
 
 interface LoginButtonProps {
     className?: string;
@@ -18,23 +19,29 @@ export function LoginButton({
     size = 'default',
     showText = true
 }: LoginButtonProps) {
-    const { login, isAuthenticated, logout } = useAuthContext();
+    const { login, isAuthenticated, logout, user } = useAuthContext();
     const [isLoading, setIsLoading] = useState(false);
+
+    // Reset loading state if auth state changes
+    useEffect(() => {
+        setIsLoading(false);
+    }, [isAuthenticated]);
 
     const handleAuth = async () => {
         if (isAuthenticated) {
+            setIsLoading(true);
             logout();
             return;
         }
 
         try {
             setIsLoading(true);
-            await login();
+            login(LoginSource.REGULAR);
+            // Note: The page will be redirected, so we don't need to reset loading state
         } catch (error) {
             console.error('Login error:', error);
             setIsLoading(false);
         }
-        // Note: We don't need to setIsLoading(false) here as the page will redirect
     };
 
     return (
@@ -48,7 +55,9 @@ export function LoginButton({
             {isLoading ? (
                 <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    {showText && <span className="ml-2">Connecting...</span>}
+                    {showText && <span className="ml-2">
+                        {isAuthenticated ? 'Logging out...' : 'Connecting...'}
+                    </span>}
                 </>
             ) : isAuthenticated ? (
                 <>

@@ -9,14 +9,14 @@ interface BentoGridProps extends ComponentPropsWithoutRef<"div"> {
   className?: string;
 }
 
-interface BentoCardProps extends ComponentPropsWithoutRef<"div"> {
+export interface BentoCardProps extends React.HTMLAttributes<HTMLDivElement> {
+  className?: string;
   name: string;
-  className: string;
-  background: ReactNode;
-  Icon: React.ElementType;
   description: string;
-  href: string;
-  cta: string;
+  Icon?: React.ElementType;
+  cta?: string;
+  href?: string;
+  background?: React.ReactNode;
 }
 
 const BentoGrid = ({ children, className, ...props }: BentoGridProps) => {
@@ -51,17 +51,26 @@ const BentoCard = ({
       "bg-background [box-shadow:0_0_0_1px_rgba(0,0,0,.03),0_2px_4px_rgba(0,0,0,.05),0_12px_24px_rgba(0,0,0,.05)]",
       // dark styles
       "transform-gpu dark:bg-background dark:[border:1px_solid_rgba(255,255,255,.1)] dark:[box-shadow:0_-20px_80px_-20px_#ffffff1f_inset]",
+      // enhanced hover effect
+      "transition-all duration-500 hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1",
       className,
     )}
     {...props}
   >
-    <div>{background}</div>
-    <div className="pointer-events-none z-10 flex transform-gpu flex-col gap-1 p-6 transition-all duration-300 group-hover:-translate-y-10">
-      <Icon className="h-12 w-12 origin-left transform-gpu text-neutral-700 transition-all duration-300 ease-in-out group-hover:scale-75" />
-      <h3 className="text-xl font-semibold text-neutral-700 dark:text-neutral-300">
+    <div className="transition-all duration-500 group-hover:scale-105 group-hover:blur-[1px]">{background}</div>
+
+    <div className="pointer-events-none z-10 flex transform-gpu flex-col gap-2 p-6 transition-all duration-300 group-hover:-translate-y-10">
+      {Icon && (
+        <div className="transition-all duration-300 group-hover:bg-primary/10 group-hover:rounded-full group-hover:p-2 w-fit">
+          <Icon className="h-10 w-10 origin-left transform-gpu text-primary transition-all duration-300 ease-in-out group-hover:scale-110 group-hover:text-primary" />
+        </div>
+      )}
+      <h3 className="text-xl font-bold text-foreground transition-all duration-300 group-hover:text-primary group-hover:translate-x-1">
         {name}
       </h3>
-      <p className="max-w-lg text-neutral-400">{description}</p>
+      <p className="max-w-lg text-muted-foreground transition-all duration-300 group-hover:text-foreground">
+        {description}
+      </p>
     </div>
 
     <div
@@ -69,14 +78,19 @@ const BentoCard = ({
         "pointer-events-none absolute bottom-0 flex w-full translate-y-10 transform-gpu flex-row items-center p-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100",
       )}
     >
-      <Button variant="ghost" asChild size="sm" className="pointer-events-auto">
-        <a href={href}>
+      <Button variant="default" asChild size="sm" className="pointer-events-auto bg-primary/90 hover:bg-primary group-hover:animate-pulse">
+        <a href={href} className="flex items-center gap-2">
           {cta}
-          <ArrowRightIcon className="ms-2 h-4 w-4 rtl:rotate-180" />
+          <ArrowRightIcon className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
         </a>
       </Button>
     </div>
-    <div className="pointer-events-none absolute inset-0 transform-gpu transition-all duration-300 group-hover:bg-black/[.03] group-hover:dark:bg-neutral-800/10" />
+
+    {/* Enhanced background gradient effects */}
+    <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" />
+
+    {/* Subtle border glow effect */}
+    <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 rounded-xl [box-shadow:inset_0_0_0_1px_rgba(var(--primary),0.2)]" />
   </div>
 );
 

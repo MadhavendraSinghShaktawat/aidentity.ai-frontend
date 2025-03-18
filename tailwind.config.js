@@ -83,7 +83,15 @@ module.exports = {
                 shimmer: {
                     "0%": { backgroundPosition: "-100% 0" },
                     "100%": { backgroundPosition: "100% 0" },
-                }
+                },
+                marquee: {
+                    "0%": { transform: "translateX(0%)" },
+                    "100%": { transform: "translateX(-100%)" },
+                },
+                "marquee-vertical": {
+                    "0%": { transform: "translateY(0%)" },
+                    "100%": { transform: "translateY(-100%)" },
+                },
             },
             animation: {
                 "accordion-down": "accordion-down 0.2s ease-out",
@@ -91,6 +99,8 @@ module.exports = {
                 scanline: "scanline 2.5s linear infinite",
                 blink: "blink 1.5s infinite",
                 shimmer: "shimmer 2s infinite",
+                marquee: "marquee var(--duration) linear infinite",
+                "marquee-vertical": "marquee-vertical var(--duration) linear infinite",
             },
             backgroundImage: {
                 'cyber-grid': 'linear-gradient(to right, hsl(var(--primary) / 0.1) 1px, transparent 1px), linear-gradient(to bottom, hsl(var(--primary) / 0.1) 1px, transparent 1px)',
